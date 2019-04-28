@@ -29,7 +29,6 @@ class SpectralNorm(nn.Module):
 
         # sigma = torch.dot(u.data, torch.mv(w.view(height,-1).data, v.data))
         sigma = u.dot(w.view(height, -1).mv(v))
-        print(sigma)
         setattr(self.module, self.name, w / sigma.expand_as(w))
 
     def _made_params(self):
