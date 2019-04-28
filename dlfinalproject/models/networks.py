@@ -164,7 +164,7 @@ class Generator(torch.nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, n_in_channel=4, spectral=False, batch_norm=False):
+    def __init__(self, n_in_channel=4, spectral=False, batch_norm=True):
         super().__init__()
         cnum = 32
         self.discriminator_net = nn.Sequential(
