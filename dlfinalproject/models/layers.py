@@ -49,6 +49,7 @@ class GatedConv2d(torch.nn.Module):
                 x = self.activation(x) * self.gated(mask)
             else:
                 x = x * self.gated(mask)
+
         if self.batch_norm:
             return self.batch_norm2d(x)
         else:

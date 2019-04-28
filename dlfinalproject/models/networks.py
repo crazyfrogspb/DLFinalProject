@@ -49,93 +49,93 @@ class Generator(torch.nn.Module):
         self.coarse_net = nn.Sequential(
             # input is 5*256*256, but it is full convolution network, so it can be larger than 256
             GatedConv2d(
-                n_in_channel, cnum, 5, 1, padding=get_pad(256, 5, 1), batch_norm=batch_norm),
+                n_in_channel, cnum, 5, 1, padding=get_pad(96, 5, 1), batch_norm=batch_norm),
             # downsample 128
             GatedConv2d(
-                cnum, 2 * cnum, 4, 2, padding=get_pad(256, 4, 2), batch_norm=batch_norm),
+                cnum, 2 * cnum, 4, 2, padding=get_pad(96, 4, 2), batch_norm=batch_norm),
             GatedConv2d(
-                2 * cnum, 2 * cnum, 3, 1, padding=get_pad(128, 3, 1), batch_norm=batch_norm),
+                2 * cnum, 2 * cnum, 3, 1, padding=get_pad(48, 3, 1), batch_norm=batch_norm),
             # downsample to 64
             GatedConv2d(
-                2 * cnum, 4 * cnum, 4, 2, padding=get_pad(128, 4, 2), batch_norm=batch_norm),
+                2 * cnum, 4 * cnum, 4, 2, padding=get_pad(48, 4, 2), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
             # atrous convlution
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, dilation=2, padding=get_pad(64, 3, 1, 2), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, dilation=2, padding=get_pad(24, 3, 1, 2), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, dilation=4, padding=get_pad(64, 3, 1, 4), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, dilation=4, padding=get_pad(24, 3, 1, 4), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, dilation=8, padding=get_pad(64, 3, 1, 8), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, dilation=8, padding=get_pad(24, 3, 1, 8), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, dilation=16, padding=get_pad(64, 3, 1, 16), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, dilation=16, padding=get_pad(24, 3, 1, 16), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
             # upsample
             GatedDeconv2d(
-                2, 4 * cnum, 2 * cnum, 3, 1, padding=get_pad(128, 3, 1), batch_norm=batch_norm),
+                2, 4 * cnum, 2 * cnum, 3, 1, padding=get_pad(48, 3, 1), batch_norm=batch_norm),
             GatedConv2d(
-                2 * cnum, 2 * cnum, 3, 1, padding=get_pad(128, 3, 1), batch_norm=batch_norm),
+                2 * cnum, 2 * cnum, 3, 1, padding=get_pad(48, 3, 1), batch_norm=batch_norm),
             GatedDeconv2d(
-                2, 2 * cnum, cnum, 3, 1, padding=get_pad(256, 3, 1), batch_norm=batch_norm),
+                2, 2 * cnum, cnum, 3, 1, padding=get_pad(96, 3, 1), batch_norm=batch_norm),
 
             GatedConv2d(
-                cnum, cnum // 2, 3, 1, padding=get_pad(256, 3, 1), batch_norm=batch_norm),
+                cnum, cnum // 2, 3, 1, padding=get_pad(48, 3, 1), batch_norm=batch_norm),
             GatedConv2d(
-                cnum // 2, 3, 3, 1, padding=get_pad(128, 3, 1), activation=None, use_gates=False, batch_norm=False),
+                cnum // 2, 3, 3, 1, padding=get_pad(96, 3, 1), activation=None, use_gates=False, batch_norm=False),
             nn.Tanh()
         )
 
         self.refine_net = nn.Sequential(
             # input is 5*256*256
             GatedConv2d(
-                n_in_channel, cnum, 5, 1, padding=get_pad(256, 5, 1), batch_norm=batch_norm),
+                n_in_channel, cnum, 5, 1, padding=get_pad(96, 5, 1), batch_norm=batch_norm),
             # downsample
             GatedConv2d(
-                cnum, cnum, 4, 2, padding=get_pad(256, 4, 2), batch_norm=batch_norm),
+                cnum, cnum, 4, 2, padding=get_pad(96, 4, 2), batch_norm=batch_norm),
             GatedConv2d(
-                cnum, 2 * cnum, 3, 1, padding=get_pad(128, 3, 1), batch_norm=batch_norm),
+                cnum, 2 * cnum, 3, 1, padding=get_pad(48, 3, 1), batch_norm=batch_norm),
             # downsample
             GatedConv2d(
-                2 * cnum, 2 * cnum, 4, 2, padding=get_pad(128, 4, 2), batch_norm=batch_norm),
+                2 * cnum, 2 * cnum, 4, 2, padding=get_pad(48, 4, 2), batch_norm=batch_norm),
             GatedConv2d(
-                2 * cnum, 4 * cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm),
+                2 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, dilation=2, padding=get_pad(64, 3, 1, 2), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, dilation=2, padding=get_pad(24, 3, 1, 2), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, dilation=4, padding=get_pad(64, 3, 1, 4), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, dilation=4, padding=get_pad(24, 3, 1, 4), batch_norm=batch_norm),
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, dilation=8, padding=get_pad(64, 3, 1, 8), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, dilation=8, padding=get_pad(24, 3, 1, 8), batch_norm=batch_norm),
 
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, dilation=16, padding=get_pad(64, 3, 1, 16), batch_norm=batch_norm)
+                4 * cnum, 4 * cnum, 3, 1, dilation=16, padding=get_pad(24, 3, 1, 16), batch_norm=batch_norm)
         )
         self.attn = SelfAttention(4 * cnum, 'relu', with_attn=False)
         self.upsample_net = nn.Sequential(
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
 
             GatedConv2d(
-                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(64, 3, 1), batch_norm=batch_norm),
+                4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
             GatedDeconv2d(
-                2, 4 * cnum, 2 * cnum, 3, 1, padding=get_pad(128, 3, 1), batch_norm=batch_norm),
+                2, 4 * cnum, 2 * cnum, 3, 1, padding=get_pad(48, 3, 1), batch_norm=batch_norm),
             GatedConv2d(
-                2 * cnum, 2 * cnum, 3, 1, padding=get_pad(128, 3, 1), batch_norm=batch_norm),
+                2 * cnum, 2 * cnum, 3, 1, padding=get_pad(48, 3, 1), batch_norm=batch_norm),
             GatedDeconv2d(
-                2, 2 * cnum, cnum, 3, 1, padding=get_pad(256, 3, 1), batch_norm=batch_norm),
+                2, 2 * cnum, cnum, 3, 1, padding=get_pad(96, 3, 1), batch_norm=batch_norm),
 
             GatedConv2d(
-                cnum, cnum // 2, 3, 1, padding=get_pad(256, 3, 1), batch_norm=batch_norm),
+                cnum, cnum // 2, 3, 1, padding=get_pad(96, 3, 1), batch_norm=batch_norm),
             GatedConv2d(
-                cnum // 2, 3, 3, 1, padding=get_pad(256, 3, 1), activation=None, use_gates=False, batch_norm=False),
+                cnum // 2, 3, 3, 1, padding=get_pad(96, 3, 1), activation=None, use_gates=False, batch_norm=False),
             nn.Tanh()
         )
 
@@ -169,18 +169,13 @@ class Discriminator(nn.Module):
         cnum = 32
         self.discriminator_net = nn.Sequential(
             SpectralConv2d(n_in_channel, 2 * cnum, 5,
-                           2, padding=same_pad(256, 128, 2, 5), spectral=False, batch_norm=batch_norm),
+                           2, padding=same_pad(96, 48, 2, 5), spectral=True, batch_norm=batch_norm),
             SpectralConv2d(2 * cnum, 4 * cnum, 5, 2,
-                           padding=same_pad(128, 64, 2, 5), spectral=False, batch_norm=batch_norm),
+                           padding=same_pad(48, 24, 2, 5), spectral=True, batch_norm=batch_norm),
             SpectralConv2d(4 * cnum, 8 * cnum, 5, 2,
-                           padding=same_pad(64, 32, 2, 5), spectral=False, batch_norm=batch_norm),
+                           padding=same_pad(24, 12, 2, 5), spectral=True, batch_norm=batch_norm),
             SpectralConv2d(8 * cnum, 8 * cnum, 5, 2,
-                           padding=same_pad(32, 16, 2, 5), spectral=False, batch_norm=batch_norm),
-            SpectralConv2d(8 * cnum, 8 * cnum, 5, 2,
-                           padding=same_pad(16, 8, 2, 5), spectral=False, batch_norm=batch_norm),
-            SpectralConv2d(8 * cnum, 8 * cnum, 5, 2,
-                           padding=same_pad(8, 4, 2, 5), spectral=False, activation=None,
-                           batch_norm=False)
+                           padding=same_pad(12, 6, 2, 5), spectral=True, activation=None, batch_norm=False)
         )
 
     def forward(self, input):
