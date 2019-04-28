@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from sklearn.model_selection import train_test_split
 from torchvision.utils import make_grid, save_image
-from tqdm import tqdm_notebook
+from tqdm import tqdm
 
 from dlfinalproject.config import config
 from dlfinalproject.data.inpainting_dataset import InpaintingDataset
@@ -25,7 +25,7 @@ def evaluate(netG, netD, loader_val, recon_loss, gan_loss, dis_loss):
     counter = 0
 
     with torch.no_grad():
-        for image, mask, gt in tqdm_notebook(loader_val, desc='validation'):
+        for image, mask, gt in tqdm(loader_val, desc='validation'):
             image = image / 127.5 - 1
             gt = gt / 127.5 - 1
             coarse_imgs, recon_imgs = netG(image, mask)
@@ -125,7 +125,7 @@ def train_model(image_folders, batch_size, test_size, random_state,
 
     for epoch_num in range(start_epoch, n_epochs):
         print('Epoch: ', epoch_num)
-        for i, (image, mask, gt) in enumerate(tqdm_notebook(loader_train, desc='training')):
+        for i, (image, mask, gt) in enumerate(tqdm(loader_train, desc='training')):
             optD.zero_grad(), netD.zero_grad(), netG.zero_grad(), optG.zero_grad()
             image = image / 127.5 - 1
             gt = gt / 127.5 - 1
