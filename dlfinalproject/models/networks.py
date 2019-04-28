@@ -164,18 +164,18 @@ class Generator(torch.nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, n_in_channel=4, batch_norm=False):
+    def __init__(self, n_in_channel=4, spectral=False, batch_norm=False):
         super().__init__()
         cnum = 32
         self.discriminator_net = nn.Sequential(
             SpectralConv2d(n_in_channel, 2 * cnum, 5,
-                           2, padding=same_pad(96, 48, 2, 5), spectral=True, batch_norm=batch_norm),
+                           2, padding=same_pad(96, 48, 2, 5), spectral=spectral, batch_norm=batch_norm),
             SpectralConv2d(2 * cnum, 4 * cnum, 5, 2,
-                           padding=same_pad(48, 24, 2, 5), spectral=True, batch_norm=batch_norm),
+                           padding=same_pad(48, 24, 2, 5), spectral=spectral, batch_norm=batch_norm),
             SpectralConv2d(4 * cnum, 8 * cnum, 5, 2,
-                           padding=same_pad(24, 12, 2, 5), spectral=True, batch_norm=batch_norm),
+                           padding=same_pad(24, 12, 2, 5), spectral=spectral, batch_norm=batch_norm),
             SpectralConv2d(8 * cnum, 8 * cnum, 5, 2,
-                           padding=same_pad(12, 6, 2, 5), spectral=True, activation=None, batch_norm=False)
+                           padding=same_pad(12, 6, 2, 5), spectral=spectral, activation=None, batch_norm=False)
         )
 
     def forward(self, input):
