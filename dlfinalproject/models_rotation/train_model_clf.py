@@ -2,6 +2,7 @@ import os.path as osp
 
 import cv2
 import mlflow
+import numpy as np
 import torch
 import torchvision.datasets as datasets
 import torchvision.models as models
@@ -10,7 +11,7 @@ from tqdm import tqdm
 
 from albumentations import (Blur, CenterCrop, Compose, Flip, GridDistortion,
                             Normalize, OneOf, RandomBrightness, RandomCrop,
-                            Resize, RGBShift, ShiftScaleRotate, ToFloat)
+                            Resize, RGBShift, ShiftScaleRotate)
 from albumentations.pytorch import ToTensor
 from dlfinalproject.config import config
 
@@ -52,6 +53,7 @@ class AlbumentationsDataset(datasets.DatasetFolder):
         path, target = self.samples[index]
         sample = self.loader(path)
         if self.transform is not None:
+            sample = np.array(sample)
             augmented = self.transform(image=sample)
             sample = augmented['image']
         if self.target_transform is not None:
