@@ -1,6 +1,6 @@
 import argparse
 
-from dlfinalproject.models.train_model import train_model
+from dlfinalproject.models_rotation.train_model import train_model
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train Watermark model')
