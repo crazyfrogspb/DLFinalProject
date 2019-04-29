@@ -43,7 +43,7 @@ def image_loader(path, batch_size):
     return data_loader_sup_train, data_loader_sup_val, data_loader_unsup
 
 
-def train_model(image_folders, batch_size, test_size, random_state, early_stopping,
+def train_model(image_folders, batch_size, early_stopping,
                 learning_rate, decay, n_epochs, eval_interval,
                 model_file, checkpoint_file, restart_optimizer, run_uuid, finetune):
     args_dict = locals()
@@ -95,8 +95,8 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
             for param in child.parameters():
                 param.requires_grad = False
 
-    optimizer = torch.optim.Adam(
-        lambda p: p.requires_grad, lr=learning_rate, weight_decay=decay)
+    optimizer = torch.optim.Adam(filter(
+        lambda p: p.requires_grad, resnet.parameters()), lr=learning_rate, weight_decay=decay)
     if checkpoint and not restart_optimizer:
         optimizer.load_state_dict(checkpoint['optimizer'])
 

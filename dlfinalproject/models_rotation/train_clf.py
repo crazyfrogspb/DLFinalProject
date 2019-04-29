@@ -10,8 +10,6 @@ if __name__ == '__main__':
     parser.add_argument('--decay', type=float, default=0.0)
     parser.add_argument('--image_folders', type=str,
                         nargs='+', default=['unsupervised'])
-    parser.add_argument('--test_size', type=float, default=0.1)
-    parser.add_argument('--random_state', type=int, default=24)
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--n_epochs', type=int, default=500)
     parser.add_argument('--eval_interval', type=int, default=500)
