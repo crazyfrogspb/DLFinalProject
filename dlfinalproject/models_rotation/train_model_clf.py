@@ -5,7 +5,7 @@ import mlflow
 import torch
 import torchvision.datasets as datasets
 import torchvision.models as models
-from torchvision.datasets import default_loader
+from PIL import Image
 from tqdm import tqdm
 
 from albumentations import (Blur, CenterCrop, Compose, Flip, GridDistortion,
@@ -17,6 +17,28 @@ AUG = {'disable': {'p_flip': 0.0, 'p_aug': 0.0}, 'light': {'p_flip': 0.25, 'p_au
        'medium': {'p_flip': 0.5, 'p_aug': 0.25}, 'heavy': {'p_flip': 0.5, 'p_aug': 0.5}}
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
+
+
+def pil_loader(path):
+    with open(path, 'rb') as f:
+        img = Image.open(f)
+        return img.convert('RGB')
+
+
+def accimage_loader(path):
+    import accimage
+    try:
+        return accimage.Image(path)
+    except IOError:
+        return pil_loader(path)
+
+
+def default_loader(path):
+    from torchvision import get_image_backend
+    if get_image_backend() == 'accimage':
+        return accimage_loader(path)
+    else:
+        return pil_loader(path)
 
 
 class AlbumentationsDataset(datasets.DatasetFolder):
