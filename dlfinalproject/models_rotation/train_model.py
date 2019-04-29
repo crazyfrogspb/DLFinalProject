@@ -6,6 +6,7 @@ import torch
 import torchvision.models as models
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
+from collections import OrderedDict
 
 from dlfinalproject.config import config
 from dlfinalproject.data.rotation_dataset import RotationDataset
@@ -57,15 +58,12 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
         checkpoint = torch.load(osp.join(config.model_dir, checkpoint_file))
         try:
             resnet.load_state_dict(checkpoint['model'])
-        except Exception as e:
-            for key, value in checkpoint['model'].items():
-                key = key.replace('module.', '')
-                try:
-                    multi_getattr(resnet, f'{key}.data').copy_(value)
-                except AttributeError:
-                    print(f'Parameter {key} not found')
-                except RuntimeError as e:
-                    print(e)
+        except RuntimeError:
+            new_state_dict = OrderedDict()
+            for k, v in checkpoint['model'].items():
+                name = k[7:]
+                new_state_dict[name] = v
+            resnet.load_state_dict(new_state_dict)
     else:
         checkpoint = None
 
