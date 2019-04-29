@@ -1,4 +1,5 @@
 import os.path as osp
+from collections import OrderedDict
 
 import cv2
 import mlflow
@@ -139,14 +140,12 @@ def train_model(image_folders, batch_size, early_stopping,
     if checkpoint is not None:
         try:
             resnet.load_state_dict(checkpoint['model'])
-        except Exception as e:
-            for key, value in checkpoint['model'].items():
-                try:
-                    multi_getattr(resnet, f'{key}.data').copy_(value)
-                except AttributeError:
-                    print(f'Parameter {key} not found')
-                except RuntimeError as e:
-                    print(e)
+        except RuntimeError:
+            new_state_dict = OrderedDict()
+            for k, v in checkpoint['model'].items():
+                name = k[7:]
+                new_state_dict[name] = v
+            resnet.load_state_dict(new_state_dict)
 
     criterion = torch.nn.CrossEntropyLoss()
 

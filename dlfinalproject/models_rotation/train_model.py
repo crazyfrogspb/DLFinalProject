@@ -1,12 +1,12 @@
 import glob
 import os.path as osp
+from collections import OrderedDict
 
 import mlflow
 import torch
 import torchvision.models as models
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-from collections import OrderedDict
 
 from dlfinalproject.config import config
 from dlfinalproject.data.rotation_dataset import RotationDataset
