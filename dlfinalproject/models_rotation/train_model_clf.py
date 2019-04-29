@@ -42,11 +42,10 @@ def default_loader(path):
 
 
 class AlbumentationsDataset(datasets.DatasetFolder):
-    def __init__(self, root, transform=None, target_transform=None, loader=default_loader, is_valid_file=None):
-        super().__init__(root, loader, IMG_EXTENSIONS if is_valid_file is None else None,
+    def __init__(self, root, transform=None, target_transform=None, loader=default_loader):
+        super().__init__(root, loader, IMG_EXTENSIONS,
                          transform=transform,
-                         target_transform=target_transform,
-                         is_valid_file=is_valid_file)
+                         target_transform=target_transform)
 
     def __getitem__(self, index):
         path, target = self.samples[index]
