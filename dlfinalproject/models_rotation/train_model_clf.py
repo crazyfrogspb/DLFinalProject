@@ -11,6 +11,7 @@ from tqdm import tqdm
 from albumentations import (Blur, CenterCrop, Compose, Flip, GridDistortion,
                             Normalize, OneOf, RandomBrightness, RandomCrop,
                             Resize, RGBShift, ShiftScaleRotate, ToFloat)
+from albumentations.pytorch import ToTensor
 from dlfinalproject.config import config
 
 AUG = {'disable': {'p_flip': 0.0, 'p_aug': 0.0}, 'light': {'p_flip': 0.25, 'p_aug': 0.1},
@@ -85,8 +86,8 @@ def image_loader(path, batch_size, augmentation=None):
                Blur(p=1.0),
                GridDistortion(p=1.0)], p=AUG[augmentation]['p_aug']),
         Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
-        ToFloat(),
-        Normalize(mean=config.img_means, std=config.img_stds)
+        Normalize(mean=config.img_means, std=config.img_stds),
+        ToTensor()
     ])
     transform_val = Compose([
         Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
