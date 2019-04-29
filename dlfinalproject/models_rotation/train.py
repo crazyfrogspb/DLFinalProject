@@ -18,6 +18,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_file', type=str, default='unsupervised.pth')
     parser.add_argument('--restart_optimizer', action='store_true')
     parser.add_argument('--early_stopping', type=int, default=25)
+    parser.add_argument('--run_uuid', type=str, default=None)
 
     args = parser.parse_args()
     args_dict = vars(args)

@@ -1,6 +1,7 @@
 import glob
 import os.path as osp
 
+import mlflow
 import torch
 import torchvision.models as models
 from sklearn.model_selection import train_test_split
@@ -12,7 +13,8 @@ from dlfinalproject.data.rotation_dataset import RotationDataset
 
 def train_model(image_folders, batch_size, test_size, random_state, early_stopping,
                 learning_rate, decay, n_epochs, eval_interval,
-                model_file, checkpoint_file, restart_optimizer):
+                model_file, checkpoint_file, restart_optimizer, run_uuid):
+    args_dict = locals()
     image_types = ['*.JPEG']
     image_files = []
     for image_folder in image_folders:
@@ -62,59 +64,65 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
         start_epoch = checkpoint['epoch']
         total_iterations = checkpoint['total_iterations']
 
-    for epoch_num in range(start_epoch, n_epochs):
-        print('Epoch: ', epoch_num)
-        for i, (imgs, labels) in enumerate(tqdm(loader_train, desc='training')):
-            optimizer.zero_grad()
-            imgs = imgs.to(config.device)
-            labels = labels.to(config.device)
-            outputs, aux_outputs = inception(imgs)
-            loss1 = criterion(outputs, labels)
-            loss2 = criterion(aux_outputs, labels)
-            loss = loss1 + 0.4 * loss2
-            loss_train += loss.item()
-            loss.backward()
-            optimizer.step()
+    with mlflow.start_run(run_uuid=run_uuid):
+        for key, value in args_dict.items():
+            mlflow.log_param(key, value)
+        for epoch_num in range(start_epoch, n_epochs):
+            print('Epoch: ', epoch_num)
+            for i, (imgs, labels) in enumerate(tqdm(loader_train, desc='training')):
+                optimizer.zero_grad()
+                imgs = imgs.to(config.device)
+                labels = labels.to(config.device)
+                outputs, aux_outputs = inception(imgs)
+                loss1 = criterion(outputs, labels)
+                loss2 = criterion(aux_outputs, labels)
+                loss = loss1 + 0.4 * loss2
+                loss_train += loss.item()
+                loss.backward()
+                optimizer.step()
 
-            current_iteration += 1
-            total_iterations += 1
+                current_iteration += 1
+                total_iterations += 1
 
-            if current_iteration % eval_interval == 0:
-                loss_train /= (current_iteration * batch_size)
-                print('Train loss: ', loss_train)
-                current_iteration = 0
-                loss_train = 0.0
-                loss_val = 0.0
-                correct = 0
-                total = 0
-                inception.eval()
-                with torch.no_grad():
-                    for i, (imgs, labels) in enumerate(tqdm(loader_val, desc='validation')):
-                        imgs = imgs.to(config.device)
-                        labels = labels.to(config.device)
-                        outputs = inception(imgs)
-                        loss = criterion(outputs, labels)
-                        loss_val += loss.item()
-                        _, predicted = torch.max(outputs.data, 1)
-                        total += labels.size(0)
-                        correct += (predicted == labels).sum().item()
-                loss_val /= total
-                acc = correct / total
-                print('Validation loss: ', loss_val)
-                print('Accuracy: ', acc)
-                if acc > best_acc:
-                    early_counter = 0
-                    best_acc = acc
-                    checkpoint = {'model': inception.state_dict(),
-                                  'optimizer': optimizer.state_dict(),
-                                  'epoch': epoch_num,
-                                  'best_acc': best_acc,
-                                  'total_iterations': total_iterations}
-                    torch.save(checkpoint, osp.join(
-                        config.model_dir, model_file))
-                else:
-                    early_counter += 1
-                    if early_counter >= early_stopping:
-                        print('Early stopping')
-                        break
-                inception.train()
+                if current_iteration % eval_interval == 0:
+                    loss_train /= (current_iteration * batch_size)
+                    print('Train loss: ', loss_train)
+                    mlflow.log_metric('loss_train', loss_train)
+                    current_iteration = 0
+                    loss_train = 0.0
+                    loss_val = 0.0
+                    correct = 0
+                    total = 0
+                    inception.eval()
+                    with torch.no_grad():
+                        for i, (imgs, labels) in enumerate(tqdm(loader_val, desc='validation')):
+                            imgs = imgs.to(config.device)
+                            labels = labels.to(config.device)
+                            outputs = inception(imgs)
+                            loss = criterion(outputs, labels)
+                            loss_val += loss.item()
+                            _, predicted = torch.max(outputs.data, 1)
+                            total += labels.size(0)
+                            correct += (predicted == labels).sum().item()
+                    loss_val /= total
+                    acc = correct / total
+                    print('Validation loss: ', loss_val)
+                    mlflow.log_metric('loss_val', loss_val)
+                    print('Accuracy: ', acc)
+                    mlflow.log_metric('accuracy', acc)
+                    if acc > best_acc:
+                        early_counter = 0
+                        best_acc = acc
+                        checkpoint = {'model': inception.state_dict(),
+                                      'optimizer': optimizer.state_dict(),
+                                      'epoch': epoch_num,
+                                      'best_acc': best_acc,
+                                      'total_iterations': total_iterations}
+                        torch.save(checkpoint, osp.join(
+                            config.model_dir, model_file))
+                    else:
+                        early_counter += 1
+                        if early_counter >= early_stopping:
+                            print('Early stopping')
+                            break
+                    inception.train()
