@@ -5,6 +5,7 @@ import mlflow
 import torch
 import torchvision.datasets as datasets
 import torchvision.models as models
+from torchvision.datasets import default_loader
 from tqdm import tqdm
 
 from albumentations import (Blur, CenterCrop, Compose, Flip, GridDistortion,
@@ -14,6 +15,27 @@ from dlfinalproject.config import config
 
 AUG = {'disable': {'p_flip': 0.0, 'p_aug': 0.0}, 'light': {'p_flip': 0.25, 'p_aug': 0.1},
        'medium': {'p_flip': 0.5, 'p_aug': 0.25}, 'heavy': {'p_flip': 0.5, 'p_aug': 0.5}}
+IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
+                  '.pgm', '.tif', '.tiff', '.webp')
+
+
+class AlbumentationsDataset(datasets.DatasetFolder):
+    def __init__(self, root, transform=None, target_transform=None, loader=default_loader, is_valid_file=None):
+        super().__init__(root, loader, IMG_EXTENSIONS if is_valid_file is None else None,
+                         transform=transform,
+                         target_transform=target_transform,
+                         is_valid_file=is_valid_file)
+
+    def __getitem__(self, index):
+        path, target = self.samples[index]
+        sample = self.loader(path)
+        if self.transform is not None:
+            augmented = self.transform(image=sample)
+            sample = augmented['image']
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return sample, target
 
 
 def multi_getattr(obj, attr, default=None):
@@ -50,9 +72,9 @@ def image_loader(path, batch_size, augmentation=None):
         ToFloat(),
         Normalize(mean=config.img_means, std=config.img_stds)
     ])
-    sup_train_data = datasets.ImageFolder(
+    sup_train_data = AlbumentationsDataset(
         f'{path}/supervised/train', transform=transform)
-    sup_val_data = datasets.ImageFolder(
+    sup_val_data = AlbumentationsDataset(
         f'{path}/supervised/val', transform=transform_val)
     data_loader_sup_train = torch.utils.data.DataLoader(
         sup_train_data, batch_size=batch_size, shuffle=True, num_workers=0)
