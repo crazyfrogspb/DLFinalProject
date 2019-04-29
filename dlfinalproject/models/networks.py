@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 
-from dlfinalproject.models.layers import (GatedConv2d, GatedDeconv2d,
-                                          SpectralConv2d, get_pad, same_pad)
+from dlfinalproject.models.layers import (BasicConv2d, GatedConv2d,
+                                          GatedDeconv2d, SpectralConv2d,
+                                          get_pad, same_pad)
 
 
 class SelfAttention(nn.Module):
@@ -40,6 +41,42 @@ class SelfAttention(nn.Module):
             return out, attention
         else:
             return out
+
+
+class Classifier(torch.nn.Module):
+    def __init__(self, n_in_channel=3, batch_norm=False):
+        super().__init__()
+        cnum = 32
+        self.extractor = nn.Sequential(BasicConv2d(
+            n_in_channel, cnum, 5, 1, padding=get_pad(96, 5, 1), batch_norm=batch_norm),
+            # downsample 128
+            BasicConv2d(
+            cnum, 2 * cnum, 4, 2, padding=get_pad(96, 4, 2), batch_norm=batch_norm),
+            BasicConv2d(
+            2 * cnum, 2 * cnum, 3, 1, padding=get_pad(48, 3, 1), batch_norm=batch_norm),
+            # downsample to 64
+            BasicConv2d(
+            2 * cnum, 4 * cnum, 4, 2, padding=get_pad(48, 4, 2), batch_norm=batch_norm),
+            BasicConv2d(
+            4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
+            BasicConv2d(
+            4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
+            # atrous convlution
+            BasicConv2d(
+            4 * cnum, 4 * cnum, 3, 1, dilation=2, padding=get_pad(24, 3, 1, 2), batch_norm=batch_norm),
+            BasicConv2d(
+            4 * cnum, 4 * cnum, 3, 1, dilation=4, padding=get_pad(24, 3, 1, 4), batch_norm=batch_norm),
+            BasicConv2d(
+            4 * cnum, 4 * cnum, 3, 1, dilation=8, padding=get_pad(24, 3, 1, 8), batch_norm=batch_norm),
+            BasicConv2d(
+            4 * cnum, 4 * cnum, 3, 1, dilation=16, padding=get_pad(24, 3, 1, 16), batch_norm=batch_norm),
+            BasicConv2d(
+            4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
+            BasicConv2d(
+            4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm))
+
+    def forward(self, x):
+        return self.layers(x)
 
 
 class Generator(torch.nn.Module):
