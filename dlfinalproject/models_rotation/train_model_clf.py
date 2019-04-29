@@ -11,7 +11,8 @@ from tqdm import tqdm
 
 from albumentations import (Blur, CenterCrop, Compose, Flip, GridDistortion,
                             Normalize, OneOf, RandomBrightness, RandomCrop,
-                            Resize, RGBShift, ShiftScaleRotate)
+                            RandomSizedCrop, Resize, RGBShift,
+                            ShiftScaleRotate)
 from albumentations.pytorch import ToTensor
 from dlfinalproject.config import config
 
@@ -80,8 +81,10 @@ def image_loader(path, batch_size, augmentation=None):
         augmentation = 'disable'
     transform = Compose([
         Flip(p=AUG[augmentation]['p_flip']),
-        OneOf([RandomCrop(200, 200, p=1.0),
-               CenterCrop(200, 200, p=1.0),
+        OneOf([RandomCrop(80, 80, p=1.0),
+               CenterCrop(80, 80, p=1.0),
+               RandomSizedCrop((70, 90), 96, 96, p=1.0,
+                               interpolation=cv2.INTER_LANCZOS4)
                ShiftScaleRotate(p=1.0, interpolation=cv2.INTER_LANCZOS4),
                RGBShift(p=1.0),
                RandomBrightness(p=1.0),
