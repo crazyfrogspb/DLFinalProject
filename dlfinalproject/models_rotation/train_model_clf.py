@@ -91,8 +91,8 @@ def image_loader(path, batch_size, augmentation=None):
     ])
     transform_val = Compose([
         Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
-        ToFloat(),
-        Normalize(mean=config.img_means, std=config.img_stds)
+        Normalize(mean=config.img_means, std=config.img_stds),
+        ToTensor()
     ])
     sup_train_data = AlbumentationsDataset(
         f'{path}/supervised/train', transform=transform)
