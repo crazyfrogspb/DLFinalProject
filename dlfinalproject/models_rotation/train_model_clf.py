@@ -1,13 +1,19 @@
 import os.path as osp
 
+import cv2
 import mlflow
 import torch
 import torchvision.datasets as datasets
 import torchvision.models as models
-import torchvision.transforms as transforms
 from tqdm import tqdm
 
+from albumentations import (Blur, CenterCrop, Compose, Flip, GridDistortion,
+                            Normalize, OneOf, RandomBrightness, RandomCrop,
+                            Resize, RGBShift, ShiftScaleRotate, ToFloat)
 from dlfinalproject.config import config
+
+AUG = {'disable': {'p_flip': 0.0, 'p_aug': 0.0}, 'light': {'p_flip': 0.25, 'p_aug': 0.1},
+       'medium': {'p_flip': 0.5, 'p_aug': 0.25}, 'heavy': {'p_flip': 0.5, 'p_aug': 0.5}}
 
 
 def multi_getattr(obj, attr, default=None):
@@ -23,31 +29,44 @@ def multi_getattr(obj, attr, default=None):
     return obj
 
 
-def image_loader(path, batch_size):
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(mean=config.img_means, std=config.img_stds)
+def image_loader(path, batch_size, augmentation=None):
+    if augmentation is None:
+        augmentation = 'disable'
+    transform = Compose([
+        Flip(p=AUG[augmentation]['p_flip']),
+        OneOf([RandomCrop(200, 200, p=1.0),
+               CenterCrop(200, 200, p=1.0),
+               ShiftScaleRotate(p=1.0, interpolation=cv2.INTER_LANCZOS4),
+               RGBShift(p=1.0),
+               RandomBrightness(p=1.0),
+               Blur(p=1.0),
+               GridDistortion(p=1.0)], p=AUG[augmentation]['p_aug']),
+        Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
+        ToFloat(),
+        Normalize(mean=config.img_means, std=config.img_stds)
+    ])
+    transform_val = Compose([
+        Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
+        ToFloat(),
+        Normalize(mean=config.img_means, std=config.img_stds)
     ])
     sup_train_data = datasets.ImageFolder(
         f'{path}/supervised/train', transform=transform)
     sup_val_data = datasets.ImageFolder(
-        f'{path}/supervised/val', transform=transform)
-    unsup_data = datasets.ImageFolder(
-        f'{path}/unsupervised/', transform=transform)
+        f'{path}/supervised/val', transform=transform_val)
     data_loader_sup_train = torch.utils.data.DataLoader(
         sup_train_data, batch_size=batch_size, shuffle=True, num_workers=0)
     data_loader_sup_val = torch.utils.data.DataLoader(
         sup_val_data, batch_size=batch_size, shuffle=True, num_workers=0)
-    data_loader_unsup = torch.utils.data.DataLoader(
-        unsup_data, batch_size=batch_size, shuffle=True, num_workers=0)
-    return data_loader_sup_train, data_loader_sup_val, data_loader_unsup
+    return data_loader_sup_train, data_loader_sup_val
 
 
 def train_model(image_folders, batch_size, early_stopping,
                 learning_rate, decay, n_epochs, eval_interval,
-                model_file, checkpoint_file, restart_optimizer, run_uuid, finetune):
+                model_file, checkpoint_file, restart_optimizer, run_uuid, finetune,
+                augmentation):
     args_dict = locals()
-    data_loader_sup_train, data_loader_sup_val, data_loader_unsup = image_loader(
+    data_loader_sup_train, data_loader_sup_val = image_loader(
         osp.join(config.data_dir, 'raw'), batch_size)
 
     resnet = models.resnet152(pretrained=False)
