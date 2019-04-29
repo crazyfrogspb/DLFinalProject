@@ -32,7 +32,7 @@ class RotationDataset(torch.utils.data.Dataset):
             idx = int(idx.cpu().numpy())
         image = Image.open(self.image_files[idx])
         image = image.convert('RGB')
-        image = image.resize((299, 299), Image.LANCZOS)
+        image = image.resize((224, 224), Image.LANCZOS)
 
         if not self.train:
             random.seed(idx)

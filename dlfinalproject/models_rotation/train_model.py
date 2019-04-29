@@ -32,25 +32,24 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
     loader_val = torch.utils.data.DataLoader(
         dataset_val, batch_size=batch_size, shuffle=False)
 
-    inception = models.inception_v3(pretrained=False)
-    inception.AuxLogits.fc = torch.nn.Linear(768, 4)
-    inception.fc = torch.nn.Linear(2048, 4)
-    inception.train()
-    inception.to(config.device)
+    resnet = models.resnet152(pretrained=False)
+    resnet.fc = torch.nn.Linear(2048, 4)
+    resnet.train()
+    resnet.to(config.device)
 
     if torch.cuda.device_count() > 1:
-        inception = torch.nn.DataParallel(inception)
+        resnet = torch.nn.DataParallel(resnet)
 
     if checkpoint_file:
         checkpoint = torch.load(osp.join(config.model_dir, checkpoint_file))
-        inception.load_state_dict(checkpoint['model'])
+        resnet.load_state_dict(checkpoint['model'])
     else:
         checkpoint = None
 
     criterion = torch.nn.CrossEntropyLoss()
 
     optimizer = torch.optim.Adam(
-        inception.parameters(), lr=learning_rate, weight_decay=decay)
+        resnet.parameters(), lr=learning_rate, weight_decay=decay)
     if checkpoint and not restart_optimizer:
         optimizer.load_state_dict(checkpoint['optimizer'])
 
@@ -73,10 +72,8 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
                 optimizer.zero_grad()
                 imgs = imgs.to(config.device)
                 labels = labels.to(config.device)
-                outputs, aux_outputs = inception(imgs)
-                loss1 = criterion(outputs, labels)
-                loss2 = criterion(aux_outputs, labels)
-                loss = loss1 + 0.4 * loss2
+                outputs = resnet(imgs)
+                loss = criterion(outputs, labels)
                 loss_train += loss.item()
                 loss.backward()
                 optimizer.step()
@@ -93,12 +90,12 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
                     loss_val = 0.0
                     correct = 0
                     total = 0
-                    inception.eval()
+                    resnet.eval()
                     with torch.no_grad():
                         for i, (imgs, labels) in enumerate(tqdm(loader_val, desc='validation')):
                             imgs = imgs.to(config.device)
                             labels = labels.to(config.device)
-                            outputs = inception(imgs)
+                            outputs = resnet(imgs)
                             loss = criterion(outputs, labels)
                             loss_val += loss.item()
                             _, predicted = torch.max(outputs.data, 1)
@@ -113,7 +110,7 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
                     if acc > best_acc:
                         early_counter = 0
                         best_acc = acc
-                        checkpoint = {'model': inception.state_dict(),
+                        checkpoint = {'model': resnet.state_dict(),
                                       'optimizer': optimizer.state_dict(),
                                       'epoch': epoch_num,
                                       'best_acc': best_acc,
@@ -125,4 +122,4 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
                         if early_counter >= early_stopping:
                             print('Early stopping')
                             break
-                    inception.train()
+                    resnet.train()
