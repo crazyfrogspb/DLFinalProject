@@ -62,7 +62,7 @@ def evaluate(netG, netD, loader_val, recon_loss, gan_loss, dis_loss):
 
 
 def train_model(image_folders, batch_size, test_size, random_state,
-                learning_rate, decay, n_epochs, eval_interval, early_stopping,
+                learning_rate, decay, n_epochs, eval_interval,
                 model_file, checkpoint_file, restart_optimizer, ignore_best_loss):
     image_types = ['*.JPEG']
     image_files = []
@@ -111,16 +111,12 @@ def train_model(image_folders, batch_size, test_size, random_state,
 
     start_epoch = 0
     total_iterations = 0
-    early_counter = 0
     current_iteration = 0
     loss_train = {'total': 0.0, 'gan': 0.0, 'rec': 0.0, 'dis': 0.0}
     LAMBDA = 1.0
-    best_val_loss = np.inf
 
     if checkpoint:
         start_epoch = checkpoint['epoch']
-        if not ignore_best_loss:
-            best_val_loss = checkpoint['best_val_loss']
         total_iterations = checkpoint['total_iterations']
 
     for epoch_num in range(start_epoch, n_epochs):
@@ -172,24 +168,15 @@ def train_model(image_folders, batch_size, test_size, random_state,
                 current_iteration = 0
                 loss_val, grid = evaluate(
                     netG, netD, loader_val, recon_loss, gan_loss, dis_loss)
-                if loss_val['total'] < best_val_loss:
-                    early_counter = 0
-                    best_val_loss = loss_val['total']
-                    checkpoint = {'netG': netG.state_dict(),
-                                  'netD': netD.state_dict(),
-                                  'optG': optG.state_dict(),
-                                  'optD': optD.state_dict(),
-                                  'epoch': epoch_num,
-                                  'best_val_loss': best_val_loss,
-                                  'total_iterations': total_iterations,
-                                  'early_counter': early_counter}
-                    torch.save(checkpoint, osp.join(
-                        config.model_dir, model_file))
-                else:
-                    early_counter += 1
-                    if early_counter > early_stopping:
-                        print('Early stopping')
-                        break
+                checkpoint = {'netG': netG.state_dict(),
+                              'netD': netD.state_dict(),
+                              'optG': optG.state_dict(),
+                              'optD': optD.state_dict(),
+                              'epoch': epoch_num,
+                              'loss_val': loss_val,
+                              'total_iterations': total_iterations}
+                torch.save(checkpoint, osp.join(
+                    config.model_dir, model_file))
                 print('Validation loss')
                 for key, value in loss_val.items():
                     print(f'{key} loss: {value}')
