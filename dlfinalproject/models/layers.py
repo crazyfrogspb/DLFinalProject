@@ -59,24 +59,16 @@ class GatedConv2d(torch.nn.Module):
 class BasicConv2d(torch.nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size,
                  stride=1, padding=0, dilation=1, groups=1, bias=True,
-                 batch_norm=False, activation=torch.nn.ELU(inplace=True),
-                 use_gates=True, spectral=False):
+                 batch_norm=False, activation=torch.nn.ELU(inplace=True)):
         super().__init__()
         self.batch_norm = batch_norm
         self.activation = activation
         self.conv2d = torch.nn.Conv2d(
             in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-        self.mask_conv2d = torch.nn.Conv2d(
-            in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight)
-        if spectral:
-            self.conv2d = SpectralNorm(self.conv2d)
-            self.mask_conv2d = SpectralNorm(self.mask_conv2d)
         self.batch_norm2d = torch.nn.BatchNorm2d(out_channels)
-        self.sigmoid = torch.nn.Sigmoid()
-        self.use_gates = use_gates
 
     def forward(self, input):
         x = self.conv2d(input)

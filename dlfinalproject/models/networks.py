@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from dlfinalproject.models.layers import (BasicConv2d, GatedConv2d,
                                           GatedDeconv2d, SpectralConv2d,
@@ -74,9 +75,16 @@ class Classifier(torch.nn.Module):
             4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm),
             BasicConv2d(
             4 * cnum, 4 * cnum, 3, 1, padding=get_pad(24, 3, 1), batch_norm=batch_norm))
+        self.fc1 = nn.Linear(128 * 24 * 24, 2000)
+        self.fc2 = nn.Linear(2000, 1500)
+        self.fc3 = nn.Linear(1500, 1000)
 
     def forward(self, x):
-        return self.layers(x)
+        x = self.extractor(x)
+        x = x.view(x.size(0), -1)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        return self.fc3(x)
 
 
 class Generator(torch.nn.Module):
