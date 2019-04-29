@@ -84,7 +84,7 @@ def image_loader(path, batch_size, augmentation=None):
         OneOf([RandomCrop(80, 80, p=1.0),
                CenterCrop(80, 80, p=1.0),
                RandomSizedCrop((70, 90), 96, 96, p=1.0,
-                               interpolation=cv2.INTER_LANCZOS4)
+                               interpolation=cv2.INTER_LANCZOS4),
                ShiftScaleRotate(p=1.0, interpolation=cv2.INTER_LANCZOS4),
                RGBShift(p=1.0),
                RandomBrightness(p=1.0),
