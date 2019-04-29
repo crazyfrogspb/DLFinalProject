@@ -16,8 +16,8 @@ from albumentations import (Blur, CenterCrop, Compose, Flip, GridDistortion,
 from albumentations.pytorch import ToTensor
 from dlfinalproject.config import config
 
-AUG = {'disable': {'p_flip': 0.0, 'p_aug': 0.0}, 'light': {'p_flip': 0.25, 'p_aug': 0.1},
-       'medium': {'p_flip': 0.5, 'p_aug': 0.25}, 'heavy': {'p_flip': 0.5, 'p_aug': 0.5}}
+AUG = {'light': {'p_flip': 0.25, 'p_aug': 0.1}, 'medium': {
+    'p_flip': 0.5, 'p_aug': 0.25}, 'heavy': {'p_flip': 0.5, 'p_aug': 0.5}}
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
 
@@ -78,22 +78,27 @@ def multi_getattr(obj, attr, default=None):
 
 def image_loader(path, batch_size, augmentation=None):
     if augmentation is None:
-        augmentation = 'disable'
-    transform = Compose([
-        Flip(p=AUG[augmentation]['p_flip']),
-        OneOf([RandomCrop(80, 80, p=1.0),
-               CenterCrop(80, 80, p=1.0),
-               RandomSizedCrop((70, 90), 96, 96, p=1.0,
-                               interpolation=cv2.INTER_LANCZOS4),
-               ShiftScaleRotate(p=1.0, interpolation=cv2.INTER_LANCZOS4),
-               RGBShift(p=1.0),
-               RandomBrightness(p=1.0),
-               Blur(p=1.0),
-               GridDistortion(p=1.0)], p=AUG[augmentation]['p_aug']),
-        Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
-        Normalize(mean=config.img_means, std=config.img_stds),
-        ToTensor()
-    ])
+        transform_val = Compose([
+            Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
+            Normalize(mean=config.img_means, std=config.img_stds),
+            ToTensor()
+        ])
+    else:
+        transform = Compose([
+            Flip(p=AUG[augmentation]['p_flip']),
+            OneOf([RandomCrop(80, 80, p=1.0),
+                   CenterCrop(80, 80, p=1.0),
+                   RandomSizedCrop((70, 90), 96, 96, p=1.0,
+                                   interpolation=cv2.INTER_LANCZOS4),
+                   ShiftScaleRotate(p=1.0, interpolation=cv2.INTER_LANCZOS4),
+                   RGBShift(p=1.0),
+                   RandomBrightness(p=1.0),
+                   Blur(p=1.0),
+                   GridDistortion(p=1.0)], p=AUG[augmentation]['p_aug']),
+            Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
+            Normalize(mean=config.img_means, std=config.img_stds),
+            ToTensor()
+        ])
     transform_val = Compose([
         Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
         Normalize(mean=config.img_means, std=config.img_stds),
