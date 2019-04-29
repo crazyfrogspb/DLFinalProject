@@ -67,7 +67,7 @@ def train_model(image_folders, batch_size, early_stopping,
                 augmentation):
     args_dict = locals()
     data_loader_sup_train, data_loader_sup_val = image_loader(
-        osp.join(config.data_dir, 'raw'), batch_size)
+        osp.join(config.data_dir, 'raw'), batch_size, augmentation)
 
     resnet = models.resnet152(pretrained=False)
     resnet.train()

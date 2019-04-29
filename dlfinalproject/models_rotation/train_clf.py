@@ -18,6 +18,7 @@ if __name__ == '__main__':
     parser.add_argument('--early_stopping', type=int, default=25)
     parser.add_argument('--run_uuid', type=str, default=None)
     parser.add_argument('--finetune', type=str, default=None)
+    parser.add_argument('--augmentation', type=str, default=None)
 
     args = parser.parse_args()
     args_dict = vars(args)
