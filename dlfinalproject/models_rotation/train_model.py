@@ -11,6 +11,19 @@ from dlfinalproject.config import config
 from dlfinalproject.data.rotation_dataset import RotationDataset
 
 
+def multi_getattr(obj, attr, default=None):
+    attributes = attr.split(".")
+    for i in attributes:
+        try:
+            obj = getattr(obj, i)
+        except AttributeError:
+            if default:
+                return default
+            else:
+                raise
+    return obj
+
+
 def train_model(image_folders, batch_size, test_size, random_state, early_stopping,
                 learning_rate, decay, n_epochs, eval_interval,
                 model_file, checkpoint_file, restart_optimizer, run_uuid):
@@ -42,7 +55,17 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
 
     if checkpoint_file:
         checkpoint = torch.load(osp.join(config.model_dir, checkpoint_file))
-        resnet.load_state_dict(checkpoint['model'])
+        try:
+            resnet.load_state_dict(checkpoint['model'])
+        except Exception as e:
+            for key, value in checkpoint['model'].items():
+                key = key.replace('module.', '')
+                try:
+                    multi_getattr(resnet, f'{key}.data').copy_(value)
+                except AttributeError:
+                    print(f'Parameter {key} not found')
+                except RuntimeError as e:
+                    print(e)
     else:
         checkpoint = None
 
