@@ -79,7 +79,7 @@ def multi_getattr(obj, attr, default=None):
 
 def image_loader(path, batch_size, augmentation=None):
     if augmentation is None:
-        transform_val = Compose([
+        transform = Compose([
             Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
             Normalize(mean=config.img_means, std=config.img_stds),
             ToTensor()
