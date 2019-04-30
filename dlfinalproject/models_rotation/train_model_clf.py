@@ -133,7 +133,6 @@ def train_model(image_folders, batch_size, early_stopping,
 
     if checkpoint_file:
         checkpoint = torch.load(osp.join(config.model_dir, checkpoint_file))
-        resnet.load_state_dict(checkpoint['model'])
     else:
         checkpoint = None
 
