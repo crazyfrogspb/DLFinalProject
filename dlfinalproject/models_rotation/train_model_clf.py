@@ -141,11 +141,21 @@ def train_model(image_folders, batch_size, early_stopping,
         try:
             resnet.load_state_dict(checkpoint['model'])
         except RuntimeError:
-            new_state_dict = OrderedDict()
-            for k, v in checkpoint['model'].items():
-                name = k[7:]
-                new_state_dict[name] = v
-            resnet.load_state_dict(new_state_dict)
+            try:
+                new_state_dict = OrderedDict()
+                for k, v in checkpoint['model'].items():
+                    name = k.replace('module.', '')
+                    new_state_dict[name] = v
+                resnet.load_state_dict(new_state_dict)
+            except Exception:
+                for key, value in checkpoint['model'].items():
+                    key = key.replace('module.', '')
+                    try:
+                        multi_getattr(resnet, f'{key}.data').copy_(value)
+                    except AttributeError:
+                        print(f'Parameter {key} not found')
+                    except RuntimeError as e:
+                        print(e)
 
     criterion = torch.nn.CrossEntropyLoss()
 
