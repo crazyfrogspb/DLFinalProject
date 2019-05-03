@@ -10,15 +10,17 @@ import torchvision.models as models
 from PIL import Image
 from tqdm import tqdm
 
-from albumentations import (Blur, CenterCrop, Compose, Flip, GridDistortion,
-                            Normalize, OneOf, RandomBrightness, RandomCrop,
-                            RandomSizedCrop, Resize, RGBShift,
-                            ShiftScaleRotate)
+from albumentations import (Blur, Compose, Cutout, GridDistortion,
+                            HorizontalFlip, Normalize, OneOf,
+                            OpticalDistortion, RandomBrightness,
+                            RandomSizedCrop, RGBShift, ShiftScaleRotate,
+                            VerticalFlip)
 from albumentations.pytorch import ToTensor
 from dlfinalproject.config import config
 
-AUG = {'light': {'p_flip': 0.25, 'p_aug': 0.1}, 'medium': {
-    'p_flip': 0.5, 'p_aug': 0.25}, 'heavy': {'p_flip': 0.5, 'p_aug': 0.5}}
+AUG = {'light': {'p_fliph': 0.25, 'p_flipv': 0.1, 'p_aug': 0.1, 'p_crop': 0.1, 'p_cut': 0.1, 'p_ssr': 0.1},
+       'medium': {'p_fliph': 0.5, 'p_flipv': 0.15, 'p_aug': 0.25, 'p_crop': 0.25, 'p_cut': 0.25, 'p_ssr': 0.25},
+       'heavy': {'p_fliph': 0.5, 'p_flipv': 0.2, 'p_aug': 0.4, 'p_crop': 0.4, 'p_cut': 0.4, 'p_ssr': 0.4}}
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
 
@@ -80,28 +82,28 @@ def multi_getattr(obj, attr, default=None):
 def image_loader(path, batch_size, augmentation=None):
     if augmentation is None:
         transform = Compose([
-            Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
             Normalize(mean=config.img_means, std=config.img_stds),
             ToTensor()
         ])
     else:
         transform = Compose([
-            Flip(p=AUG[augmentation]['p_flip']),
-            OneOf([RandomCrop(80, 80, p=1.0),
-                   CenterCrop(80, 80, p=1.0),
-                   RandomSizedCrop((70, 90), 96, 96, p=1.0,
-                                   interpolation=cv2.INTER_LANCZOS4),
-                   ShiftScaleRotate(p=1.0, interpolation=cv2.INTER_LANCZOS4),
-                   RGBShift(p=1.0),
-                   RandomBrightness(p=1.0),
-                   Blur(p=1.0),
+            HorizontalFlip(p=AUG[augmentation]['p_fliph']),
+            VerticalFlip(p=AUG[augmentation]['p_flipv']),
+            OneOf([RandomSizedCrop((64, 90), 96, 96, p=1.0,
+                                   interpolation=cv2.INTER_LANCZOS4)], p=AUG[augmentation]['p_crop']),
+            ShiftScaleRotate(p=AUG[augmentation]['p_ssr'],
+                             interpolation=cv2.INTER_LANCZOS4),
+            OneOf([RGBShift(p=1.0),
+                   RandomBrightness(p=1.0, limit=0.35),
+                   Blur(p=1.0, blur_limit=4),
+                   OpticalDistortion(p=1.0),
                    GridDistortion(p=1.0)], p=AUG[augmentation]['p_aug']),
-            Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
+            Cutout(num_holes=2, max_h_size=24, max_w_size=24,
+                   p=AUG[augmentation]['p_cut']),
             Normalize(mean=config.img_means, std=config.img_stds),
             ToTensor()
         ])
     transform_val = Compose([
-        Resize(224, 224, interpolation=cv2.INTER_LANCZOS4),
         Normalize(mean=config.img_means, std=config.img_stds),
         ToTensor()
     ])
@@ -124,7 +126,7 @@ def train_model(image_folders, batch_size, early_stopping,
     data_loader_sup_train, data_loader_sup_val = image_loader(
         osp.join(config.data_dir, 'raw'), batch_size, augmentation)
 
-    resnet = models.resnet152(pretrained=False)
+    resnet = models.resnet50(pretrained=False)
     resnet.train()
     resnet.to(config.device)
 
