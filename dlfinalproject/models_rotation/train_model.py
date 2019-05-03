@@ -46,7 +46,7 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
     loader_val = torch.utils.data.DataLoader(
         dataset_val, batch_size=batch_size, shuffle=False)
 
-    resnet = models.resnet152(pretrained=False)
+    resnet = models.resnet50(pretrained=False)
     resnet.fc = torch.nn.Linear(2048, 4)
     resnet.train()
     resnet.to(config.device)
