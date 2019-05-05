@@ -6,7 +6,6 @@ import mlflow
 import numpy as np
 import torch
 import torchvision.datasets as datasets
-import torchvision.models as models
 from PIL import Image
 from tqdm import tqdm
 
@@ -17,6 +16,7 @@ from albumentations import (Blur, Compose, Cutout, GridDistortion,
                             VerticalFlip)
 from albumentations.pytorch import ToTensor
 from dlfinalproject.config import config
+from dlfinalproject.submission.model import Bottleneck, ResNet
 
 AUG = {'light': {'p_fliph': 0.25, 'p_flipv': 0.1, 'p_aug': 0.1, 'p_crop': 0.1, 'p_cut': 0.1, 'p_ssr': 0.1},
        'medium': {'p_fliph': 0.5, 'p_flipv': 0.15, 'p_aug': 0.25, 'p_crop': 0.25, 'p_cut': 0.25, 'p_ssr': 0.25},
@@ -121,15 +121,16 @@ def image_loader(path, batch_size, augmentation=None):
 def train_model(image_folders, batch_size, early_stopping,
                 learning_rate, decay, n_epochs, eval_interval,
                 model_file, checkpoint_file, restart_optimizer, run_uuid, finetune,
-                augmentation, architecture):
+                augmentation, architecture, filters_factor):
     args_dict = locals()
     data_loader_sup_train, data_loader_sup_val = image_loader(
         osp.join(config.data_dir, 'raw'), batch_size, augmentation)
 
     if architecture == 'resnet50':
-        resnet = models.resnet50(pretrained=False)
+        resnet = ResNet(Bottleneck, [3, 4, 6, 3], filters_factor=filters_factor)
     elif architecture == 'resnet152':
-        resnet = models.resnet152(pretrained=False)
+        resnet = ResNet(Bottleneck, [3, 8, 36, 3],
+                        filters_factor=filters_factor)
     resnet.train()
     resnet.to(config.device)
 

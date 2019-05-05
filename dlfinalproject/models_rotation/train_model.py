@@ -4,12 +4,12 @@ from collections import OrderedDict
 
 import mlflow
 import torch
-import torchvision.models as models
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 from dlfinalproject.config import config
 from dlfinalproject.data.rotation_dataset import RotationDataset
+from dlfinalproject.submission.model import Bottleneck, ResNet
 
 
 def multi_getattr(obj, attr, default=None):
@@ -27,7 +27,8 @@ def multi_getattr(obj, attr, default=None):
 
 def train_model(image_folders, batch_size, test_size, random_state, early_stopping,
                 learning_rate, decay, n_epochs, eval_interval,
-                model_file, checkpoint_file, restart_optimizer, run_uuid):
+                model_file, checkpoint_file, restart_optimizer, run_uuid,
+                architecture, filters_factor):
     args_dict = locals()
     image_types = ['*.JPEG']
     image_files = []
@@ -46,8 +47,12 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
     loader_val = torch.utils.data.DataLoader(
         dataset_val, batch_size=batch_size, shuffle=False)
 
-    resnet = models.resnet50(pretrained=False)
-    resnet.fc = torch.nn.Linear(2048, 4)
+    if architecture == 'resnet50':
+        resnet = ResNet(Bottleneck, [3, 4, 6, 3], filters_factor=filters_factor)
+    elif architecture == 'resnet152':
+        resnet = ResNet(Bottleneck, [3, 8, 36, 3],
+                        filters_factor=filters_factor)
+    resnet.fc = torch.nn.Linear(512 * filters_factor, 4)
     resnet.train()
     resnet.to(config.device)
 

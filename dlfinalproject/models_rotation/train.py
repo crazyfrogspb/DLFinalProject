@@ -19,6 +19,8 @@ if __name__ == '__main__':
     parser.add_argument('--restart_optimizer', action='store_true')
     parser.add_argument('--early_stopping', type=int, default=25)
     parser.add_argument('--run_uuid', type=str, default=None)
+    parser.add_argument('--architecture', type=str, default='resnet50')
+    parser.add_argument('--filters_factors', type=int, default=4)
 
     args = parser.parse_args()
     args_dict = vars(args)
