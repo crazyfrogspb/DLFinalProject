@@ -192,6 +192,7 @@ def train_model(image_folders, batch_size, early_stopping,
     if checkpoint:
         start_epoch = checkpoint['epoch']
         total_iterations = checkpoint['total_iterations']
+        best_acc = checkpoint['best_acc']
 
     with mlflow.start_run(run_uuid=run_uuid):
         for key, value in args_dict.items():
