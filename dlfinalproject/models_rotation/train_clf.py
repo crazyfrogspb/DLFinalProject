@@ -21,6 +21,7 @@ if __name__ == '__main__':
     parser.add_argument('--augmentation', type=str, default=None)
     parser.add_argument('--architecture', type=str, default='resnet50')
     parser.add_argument('--filters_factor', type=int, default=4)
+    parser.add_argument('--ignore_best_acc', action='store_true')
 
     args = parser.parse_args()
     args_dict = vars(args)

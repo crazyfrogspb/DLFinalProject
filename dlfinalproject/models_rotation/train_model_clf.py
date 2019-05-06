@@ -121,7 +121,7 @@ def image_loader(path, batch_size, augmentation=None):
 def train_model(image_folders, batch_size, early_stopping,
                 learning_rate, decay, n_epochs, eval_interval,
                 model_file, checkpoint_file, restart_optimizer, run_uuid, finetune,
-                augmentation, architecture, filters_factor):
+                augmentation, architecture, filters_factor, ignore_best_acc):
     args_dict = locals()
     data_loader_sup_train, data_loader_sup_val = image_loader(
         osp.join(config.data_dir, 'raw'), batch_size, augmentation)
@@ -196,7 +196,8 @@ def train_model(image_folders, batch_size, early_stopping,
     if checkpoint:
         start_epoch = checkpoint['epoch']
         total_iterations = checkpoint['total_iterations']
-        best_acc = checkpoint['best_acc']
+        if not ignore_best_acc:
+            best_acc = checkpoint['best_acc']
 
     with mlflow.start_run(run_uuid=run_uuid):
         for key, value in args_dict.items():
