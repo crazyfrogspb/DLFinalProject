@@ -193,7 +193,7 @@ def train_model(image_folders, batch_size, early_stopping,
         optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, resnet.parameters(
         )), lr=learning_rate, weight_decay=decay, momentum=momentum, nesterov=True)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='max', factor=0.5, patience=patience)
+        optimizer, mode='max', factor=0.5, patience=patience, verbose=True)
 
     if checkpoint and not restart_optimizer:
         optimizer.load_state_dict(checkpoint['optimizer'])

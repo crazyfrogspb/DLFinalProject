@@ -28,7 +28,7 @@ def multi_getattr(obj, attr, default=None):
 def train_model(image_folders, batch_size, test_size, random_state, early_stopping,
                 learning_rate, decay, n_epochs, eval_interval,
                 model_file, checkpoint_file, restart_optimizer, run_uuid,
-                architecture, filters_factor):
+                architecture, filters_factor, optim, momentum, patience):
     args_dict = locals()
     image_types = ['*.JPEG']
     image_files = []
@@ -74,8 +74,18 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
 
     criterion = torch.nn.CrossEntropyLoss()
 
-    optimizer = torch.optim.Adam(
-        resnet.parameters(), lr=learning_rate, weight_decay=decay)
+    if optim == 'adam':
+        optimizer = torch.optim.Adam(filter(
+            lambda p: p.requires_grad, resnet.parameters()), lr=learning_rate, weight_decay=decay)
+    elif optim == 'rmsprop':
+        optimizer = torch.optim.RMSprop(filter(lambda p: p.requires_grad, resnet.parameters(
+        )), lr=learning_rate, weight_decay=decay, momentum=momentum)
+    elif optim == 'sgd':
+        optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, resnet.parameters(
+        )), lr=learning_rate, weight_decay=decay, momentum=momentum, nesterov=True)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode='max', factor=0.5, patience=patience, verbose=True)
+
     if checkpoint and not restart_optimizer:
         optimizer.load_state_dict(checkpoint['optimizer'])
 
@@ -130,6 +140,7 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
                             correct += (predicted == labels).sum().item()
                     loss_val /= total
                     acc = correct / total
+                    scheduler.step(acc)
                     print('Validation loss: ', loss_val)
                     mlflow.log_metric('loss_val', loss_val)
                     print('Accuracy: ', acc)
