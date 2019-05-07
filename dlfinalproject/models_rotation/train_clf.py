@@ -22,6 +22,9 @@ if __name__ == '__main__':
     parser.add_argument('--architecture', type=str, default='resnet50')
     parser.add_argument('--filters_factor', type=int, default=4)
     parser.add_argument('--ignore_best_acc', action='store_true')
+    parser.add_argument('--optim', type=str, default='adam')
+    parser.add_argument('--momentum', type=float, default=0.0)
+    parser.add_argument('--patience', type=int, default=7)
 
     args = parser.parse_args()
     args_dict = vars(args)

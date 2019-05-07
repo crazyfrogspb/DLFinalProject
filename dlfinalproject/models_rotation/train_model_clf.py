@@ -121,7 +121,8 @@ def image_loader(path, batch_size, augmentation=None):
 def train_model(image_folders, batch_size, early_stopping,
                 learning_rate, decay, n_epochs, eval_interval,
                 model_file, checkpoint_file, restart_optimizer, run_uuid, finetune,
-                augmentation, architecture, filters_factor, ignore_best_acc):
+                augmentation, architecture, filters_factor, ignore_best_acc,
+                optim, momentum, patience):
     args_dict = locals()
     data_loader_sup_train, data_loader_sup_val = image_loader(
         osp.join(config.data_dir, 'raw'), batch_size, augmentation)
@@ -182,8 +183,18 @@ def train_model(image_folders, batch_size, early_stopping,
             for param in child.parameters():
                 param.requires_grad = False
 
-    optimizer = torch.optim.Adam(filter(
-        lambda p: p.requires_grad, resnet.parameters()), lr=learning_rate, weight_decay=decay)
+    if optim == 'adam':
+        optimizer = torch.optim.Adam(filter(
+            lambda p: p.requires_grad, resnet.parameters()), lr=learning_rate, weight_decay=decay)
+    elif optim == 'rmsprop':
+        optimizer = torch.optim.RMSprop(filter(lambda p: p.requires_grad, resnet.parameters(
+        )), lr=learning_rate, weight_decay=decay, momentum=momentum)
+    elif optim == 'sgd':
+        optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, resnet.parameters(
+        )), lr=learning_rate, weight_decay=decay, momentum=momentum)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode='max', factor=0.5, patience=patience)
+
     if checkpoint and not restart_optimizer:
         optimizer.load_state_dict(checkpoint['optimizer'])
 
@@ -239,6 +250,7 @@ def train_model(image_folders, batch_size, early_stopping,
                             correct += (predicted == labels).sum().item()
                     loss_val /= total
                     acc = correct / total
+                    scheduler.step(acc)
                     print('Validation loss: ', loss_val)
                     mlflow.log_metric('loss_val', loss_val)
                     print('Accuracy: ', acc)
