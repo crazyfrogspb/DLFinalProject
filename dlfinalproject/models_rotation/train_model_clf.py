@@ -191,7 +191,7 @@ def train_model(image_folders, batch_size, early_stopping,
         )), lr=learning_rate, weight_decay=decay, momentum=momentum)
     elif optim == 'sgd':
         optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, resnet.parameters(
-        )), lr=learning_rate, weight_decay=decay, momentum=momentum)
+        )), lr=learning_rate, weight_decay=decay, momentum=momentum, nesterov=True)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='max', factor=0.5, patience=patience)
 
