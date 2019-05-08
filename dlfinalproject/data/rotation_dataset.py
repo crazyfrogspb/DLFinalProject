@@ -25,12 +25,12 @@ class RotationDataset(torch.utils.data.Dataset):
             [transforms.ToTensor(), transforms.Normalize(mean=config.img_means, std=config.img_stds)])
 
     def __len__(self):
-        return len(self.image_files)
+        return len(self.image_files) * 4
 
     def __getitem__(self, idx):
         if isinstance(idx, torch.Tensor):
             idx = int(idx.cpu().numpy())
-        image = Image.open(self.image_files[idx])
+        image = Image.open(self.image_files[idx // 4])
         image = image.convert('RGB')
         #image = image.resize((224, 224), Image.LANCZOS)
 
@@ -40,7 +40,7 @@ class RotationDataset(torch.utils.data.Dataset):
             torch.cuda.manual_seed_all(idx)
             np.random.seed(idx)
 
-        rotation = np.random.randint(0, 4)
+        rotation = idx % 4
         image = image.rotate(rotation * 90)
 
         image_tensor = self.norm_tf(image).to(config.device)
