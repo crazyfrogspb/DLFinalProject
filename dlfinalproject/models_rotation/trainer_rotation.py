@@ -8,7 +8,7 @@ import mlflow
 import torch
 from dlfinalproject.config import config
 from dlfinalproject.data.rotation_dataset import RotationDataset
-from dlfinalproject.submission import modelv2
+from dlfinalproject.submission import modelv2, revnet
 from dlfinalproject.submission.model import Bottleneck, ResNet
 from sklearn.model_selection import train_test_split
 
@@ -57,6 +57,9 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
     elif architecture == 'resnet50v2':
         resnet = modelv2.ResNet(
             Bottleneck, [3, 4, 6, 3], filters_factor=filters_factor, num_classes=4)
+    elif architecture == 'revnet50':
+        resnet = revnet.RevNet(revnet.BottleneckRev, [
+                               3, 4, 6, 3], filters_factor=filters_factor, num_classes=4)
 
     resnet.train()
     resnet.to(config.device)
