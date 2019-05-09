@@ -101,7 +101,7 @@ class ResNet(nn.Module):
         self._norm_layer = norm_layer
 
         self.filters_factor = filters_factor
-        self.inplanes = 64 * self.filters_factor
+        self.inplanes = 16 * self.filters_factor
         self.dilation = 1
         self.last_relu = last_relu
         if replace_stride_with_dilation is None:
