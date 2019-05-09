@@ -1,6 +1,7 @@
 # adapted from torchvision
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
@@ -184,14 +185,14 @@ class ResNet(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.fc(x)
 
-        return x
+        return F.softmax(x, dim=1)
 
 
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
 
-        self.model = ResNet(Bottleneck, [3, 8, 36, 3])
+        self.model = ResNet(Bottleneck, [3, 4, 6, 3], filters_factor=12)
 
         # Load pre-trained model
         self.load_weights('weights.pth')
@@ -219,5 +220,8 @@ class Model(nn.Module):
             else:
                 raise ValueError("state_dict() keys do not match")
 
-    def forward(self, x):
-        return self.model(x)
+    def forward(self, x, augment=True):
+        if augment:
+            return self.model(x) + self.model(torch.flip(x, [3]))
+        else:
+            return self.model(x)

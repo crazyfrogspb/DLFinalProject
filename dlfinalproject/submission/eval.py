@@ -3,17 +3,14 @@ import json
 import time
 
 import torch
-from PIL import Image
+from model import Model
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-
-from model import Model
 
 
 def load_data(data_dir, batch_size, split):
     """ Method returning a data loader for labeled data """
     transform = transforms.Compose([
-        transforms.Resize((224, 224), interpolation=Image.LANCZOS),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.49865985, 0.47058615, 0.41846788], std=[
                              0.28398806, 0.2754099, 0.29393724]),
@@ -57,8 +54,8 @@ def evaluate(model, data_loader, device, split, top_k=5):
         target_top_k = target.view(-1, 1).expand(batch_size, top_k)
         n_correct_top_k += pred_top_k.eq(target_top_k).int().sum().item()
 
-        top_1_acc = n_correct_top_1 / n_samples
-        print(f'{split} top 1 accuracy: {top_1_acc:.4f}')
+        # top_1_acc = n_correct_top_1 / n_samples
+        # print(f'{split} top 1 accuracy: {top_1_acc:.4f}')
 
     # Accuracy
     top_1_acc = n_correct_top_1 / n_samples
