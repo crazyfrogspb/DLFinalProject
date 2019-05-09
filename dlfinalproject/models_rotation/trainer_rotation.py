@@ -2,14 +2,15 @@ import glob
 import os.path as osp
 from collections import OrderedDict
 
-import mlflow
-import torch
-from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
+import mlflow
+import torch
 from dlfinalproject.config import config
 from dlfinalproject.data.rotation_dataset import RotationDataset
+from dlfinalproject.models_rotation import modelv2
 from dlfinalproject.submission.model import Bottleneck, ResNet
+from sklearn.model_selection import train_test_split
 
 
 def multi_getattr(obj, attr, default=None):
@@ -48,11 +49,15 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
         dataset_val, batch_size=batch_size, shuffle=False)
 
     if architecture == 'resnet50':
-        resnet = ResNet(Bottleneck, [3, 4, 6, 3], filters_factor=filters_factor)
+        resnet = ResNet(Bottleneck, [3, 4, 6, 3],
+                        filters_factor=filters_factor, num_classes=4)
     elif architecture == 'resnet152':
         resnet = ResNet(Bottleneck, [3, 8, 36, 3],
-                        filters_factor=filters_factor)
-    resnet.fc = torch.nn.Linear(512 * filters_factor, 4)
+                        filters_factor=filters_factor, num_classes=4)
+    elif architecture == 'resnet50v2':
+        resnet = modelv2.ResNet(
+            Bottleneck, [3, 4, 6, 3], filters_factor=filters_factor, num_classes=4)
+
     resnet.train()
     resnet.to(config.device)
 
