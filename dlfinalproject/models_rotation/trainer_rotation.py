@@ -60,6 +60,9 @@ def train_model(image_folders, batch_size, test_size, random_state, early_stoppi
     elif architecture == 'revnet50':
         resnet = revnet.RevNet(revnet.BottleneckRev, [
                                3, 4, 6, 3], filters_factor=filters_factor, num_classes=4)
+    else:
+        raise NotImplementedError(
+            f'Architecture {architecture} is not implemented')
 
     resnet.train()
     resnet.to(config.device)
