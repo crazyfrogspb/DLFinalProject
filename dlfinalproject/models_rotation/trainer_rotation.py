@@ -8,7 +8,7 @@ import mlflow
 import torch
 from dlfinalproject.config import config
 from dlfinalproject.data.rotation_dataset import RotationDataset
-from dlfinalproject.models_rotation import modelv2
+from dlfinalproject.submission import modelv2
 from dlfinalproject.submission.model import Bottleneck, ResNet
 from sklearn.model_selection import train_test_split
 
