@@ -176,9 +176,13 @@ def train_model(image_folders, batch_size, early_stopping,
         trainable_layers = ['fc']
     elif finetune == 'last':
         trainable_layers = ['layer4', 'avgpool', 'fc']
+        if architecture in ['resnet50v2', 'revnet50']:
+            trainable_layers.extend(['relu', 'bn_last'])
     elif finetune is None:
         trainable_layers = ['conv1', 'bn1', 'relu', 'maxpool',
                             'layer1', 'layer2', 'layer3', 'layer4', 'avgpool', 'fc']
+        if architecture == 'revnet50':
+            trainable_layers.append('pool_double')
 
     for name, child in resnet.named_children():
         if name in trainable_layers:
