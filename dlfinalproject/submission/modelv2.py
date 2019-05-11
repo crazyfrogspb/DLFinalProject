@@ -181,7 +181,7 @@ class ResNet(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.fc(x)
 
-        return F.softmax(x, dim=1)
+        return x
 
 
 class Model(nn.Module):
@@ -218,6 +218,6 @@ class Model(nn.Module):
 
     def forward(self, x, augment=True):
         if augment:
-            return self.model(x) + self.model(torch.flip(x, [3]))
+            return F.softmax(self.model(x), dim=1) + F.softmax(self.model(torch.flip(x, [3])), dim=1)
         else:
-            return self.model(x)
+            return F.softmax(self.model(x), dim=1)

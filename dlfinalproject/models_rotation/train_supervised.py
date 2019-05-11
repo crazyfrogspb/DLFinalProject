@@ -25,6 +25,7 @@ if __name__ == '__main__':
     parser.add_argument('--optim', type=str, default='adam')
     parser.add_argument('--momentum', type=float, default=0.0)
     parser.add_argument('--patience', type=int, default=7)
+    parser.add_argument('--samples_per_class', type=int, default=64)
 
     args = parser.parse_args()
     args_dict = vars(args)
