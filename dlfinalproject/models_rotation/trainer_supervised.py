@@ -16,6 +16,7 @@ from albumentations import (Blur, Compose, Cutout, GridDistortion,
                             VerticalFlip)
 from albumentations.pytorch import ToTensor
 from dlfinalproject.config import config
+from dlfinalproject.submission import modelv2, revnet
 from dlfinalproject.submission.model import Bottleneck, ResNet
 
 AUG = {'light': {'p_fliph': 0.25, 'p_flipv': 0.1, 'p_aug': 0.1, 'p_crop': 0.1, 'p_cut': 0.1, 'p_ssr': 0.1},
@@ -132,6 +133,12 @@ def train_model(image_folders, batch_size, early_stopping,
     elif architecture == 'resnet152':
         resnet = ResNet(Bottleneck, [3, 8, 36, 3],
                         filters_factor=filters_factor)
+    elif architecture == 'resnet50v2':
+        resnet = modelv2.ResNet(
+            Bottleneck, [3, 4, 6, 3], filters_factor=filters_factor)
+    elif architecture == 'revnet50':
+        resnet = revnet.RevNet(revnet.BottleneckRev, [
+                               3, 4, 6, 3], filters_factor=filters_factor)
     resnet.train()
     resnet.to(config.device)
 

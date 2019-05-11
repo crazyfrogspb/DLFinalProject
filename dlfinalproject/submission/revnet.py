@@ -19,13 +19,14 @@ class Bottleneck(nn.Module):
         super(Bottleneck, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
+        width = int(planes * (base_width / 64.)) * groups
         self.expansion = expansion
-        self.conv1 = conv1x1(inplanes, planes)
+        self.conv1 = conv1x1(inplanes, width)
         self.bn1 = norm_layer(inplanes)
-        self.conv2 = conv3x3(planes, planes, stride, groups, dilation)
-        self.bn2 = norm_layer(planes)
-        self.conv3 = conv1x1(planes, self.expansion * planes)
-        self.bn3 = norm_layer(planes)
+        self.conv2 = conv3x3(width, width, stride, groups, dilation)
+        self.bn2 = norm_layer(width)
+        self.conv3 = conv1x1(width, self.expansion * width)
+        self.bn3 = norm_layer(width)
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
@@ -161,7 +162,7 @@ class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
 
-        self.model = ResNet(Bottleneck, [3, 4, 6, 3], filters_factor=12)
+        self.model = RevNet(BottleneckRev, [3, 4, 6, 3], filters_factor=12)
 
         # Load pre-trained model
         self.load_weights('weights.pth')
