@@ -155,7 +155,7 @@ class RevNet(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.fc(x)
 
-        return F.softmax(x, dim=1)
+        return x
 
 
 class Model(nn.Module):
