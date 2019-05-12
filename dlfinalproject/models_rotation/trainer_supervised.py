@@ -231,7 +231,7 @@ def train_model(image_folders, batch_size, early_stopping,
     if checkpoint:
         start_epoch = checkpoint['epoch']
         total_iterations = checkpoint['total_iterations']
-        run_uuid = checkpoint['run_uuid']
+        run_uuid = checkpoint.get('run_uuid')
         if not ignore_best_acc:
             best_acc = checkpoint['best_acc']
 
