@@ -231,6 +231,7 @@ def train_model(image_folders, batch_size, early_stopping,
     if checkpoint:
         start_epoch = checkpoint['epoch']
         total_iterations = checkpoint['total_iterations']
+        run_uuid = checkpoint['run_uuid']
         if not ignore_best_acc:
             best_acc = checkpoint['best_acc']
 
@@ -286,7 +287,8 @@ def train_model(image_folders, batch_size, early_stopping,
                                       'optimizer': optimizer.state_dict(),
                                       'epoch': epoch_num,
                                       'best_acc': best_acc,
-                                      'total_iterations': total_iterations}
+                                      'total_iterations': total_iterations,
+                                      'run_uuid': run_uuid}
                         torch.save(checkpoint, osp.join(
                             config.model_dir, model_file))
                     else:
