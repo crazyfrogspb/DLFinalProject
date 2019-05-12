@@ -58,7 +58,7 @@ class AlbumentationsDataset(datasets.DatasetFolder):
         indices = []
         for class_num, class_name in enumerate(self.classes):
             class_inds = np.random.choice(np.argwhere(
-                targets == class_num).reshape(-1), samples_per_class)
+                targets == class_num).reshape(-1), samples_per_class, replace=False)
             indices.extend(list(class_inds))
         self.indices = sorted(indices)
 
@@ -126,7 +126,7 @@ def image_loader(path, batch_size, augmentation=None, samples_per_class=64, val_
     data_loader_sup_train = torch.utils.data.DataLoader(
         sup_train_data, batch_size=batch_size, shuffle=True, num_workers=0)
     data_loader_sup_val = torch.utils.data.DataLoader(
-        sup_val_data, batch_size=batch_size, shuffle=True, num_workers=0)
+        sup_val_data, batch_size=batch_size, shuffle=False, num_workers=0)
     return data_loader_sup_train, data_loader_sup_val
 
 
