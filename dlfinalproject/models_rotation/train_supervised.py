@@ -27,6 +27,7 @@ if __name__ == '__main__':
     parser.add_argument('--patience', type=int, default=7)
     parser.add_argument('--samples_per_class', type=int, default=64)
     parser.add_argument('--val_samples_per_class', type=int, default=64)
+    parser.add_argument('--random_state', type=int, default=24)
 
     args = parser.parse_args()
     args_dict = vars(args)

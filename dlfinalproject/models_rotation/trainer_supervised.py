@@ -49,13 +49,16 @@ def default_loader(path):
 
 
 class AlbumentationsDataset(datasets.DatasetFolder):
-    def __init__(self, root, transform=None, target_transform=None, loader=default_loader, samples_per_class=64):
+    def __init__(self, root, transform=None,
+                 target_transform=None, loader=default_loader,
+                 samples_per_class=64, random_state=24):
         super().__init__(root, loader, IMG_EXTENSIONS,
                          transform=transform,
                          target_transform=target_transform)
         self.samples_per_class = samples_per_class
         targets = np.array(self.targets)
         indices = []
+        np.random.seed(random_state)
         for class_num, class_name in enumerate(self.classes):
             class_inds = np.random.choice(np.argwhere(
                 targets == class_num).reshape(-1), samples_per_class, replace=False)
@@ -91,7 +94,8 @@ def multi_getattr(obj, attr, default=None):
     return obj
 
 
-def image_loader(path, batch_size, augmentation=None, samples_per_class=64, val_samples_per_class=64):
+def image_loader(path, batch_size, augmentation=None,
+                 samples_per_class=64, val_samples_per_class=64, random_state=24):
     if augmentation is None:
         transform = Compose([
             Normalize(mean=config.img_means, std=config.img_stds),
@@ -120,9 +124,9 @@ def image_loader(path, batch_size, augmentation=None, samples_per_class=64, val_
         ToTensor()
     ])
     sup_train_data = AlbumentationsDataset(
-        f'{path}/supervised/train', transform=transform, samples_per_class=samples_per_class)
+        f'{path}/supervised/train', transform=transform, samples_per_class=samples_per_class, random_state=random_state)
     sup_val_data = AlbumentationsDataset(
-        f'{path}/supervised/val', transform=transform_val, samples_per_class=val_samples_per_class)
+        f'{path}/supervised/val', transform=transform_val, samples_per_class=val_samples_per_class, random_state=random_state)
     data_loader_sup_train = torch.utils.data.DataLoader(
         sup_train_data, batch_size=batch_size, shuffle=True, num_workers=0)
     data_loader_sup_val = torch.utils.data.DataLoader(
@@ -134,10 +138,11 @@ def train_model(image_folders, batch_size, early_stopping,
                 learning_rate, decay, n_epochs, eval_interval,
                 model_file, checkpoint_file, restart_optimizer, run_uuid, finetune,
                 augmentation, architecture, filters_factor, ignore_best_acc,
-                optim, momentum, patience, samples_per_class, val_samples_per_class):
+                optim, momentum, patience, samples_per_class, val_samples_per_class,
+                random_state):
     args_dict = locals()
-    data_loader_sup_train, data_loader_sup_val = image_loader(
-        osp.join(config.data_dir, 'raw'), batch_size, augmentation, samples_per_class, val_samples_per_class)
+    data_loader_sup_train, data_loader_sup_val = image_loader(osp.join(
+        config.data_dir, 'raw'), batch_size, augmentation, samples_per_class, val_samples_per_class, random_state)
 
     if architecture == 'resnet50':
         resnet = ResNet(Bottleneck, [3, 4, 6, 3], filters_factor=filters_factor)
